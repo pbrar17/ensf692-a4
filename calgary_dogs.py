@@ -79,7 +79,32 @@ def main():
     print(f"The {selection} was {((selectedBreedSum/allBreedsSum) * 100):.6f}% of top breeds across all years.")
 
     monthlyData = data.groupby(['Month','Breed'], as_index= False)['Total'].sum()
+    monthlyDataSelectedBreed = monthlyData.query('Breed == @selection')
+    theOthers = monthlyData.query('Breed != @selection')
+    print(monthlyDataSelectedBreed)
+    # print(theOthers)
+
+    theBreeds =  theOthers['Month'].values
+    popularMonths = set()
+    for x in theBreeds:
+        thisMonth = monthlyData.query('Month == @x')
+        maxForThisMonth = np.max(thisMonth['Total'])
+
+        filtered = monthlyDataSelectedBreed.loc[monthlyDataSelectedBreed['Month'] == x, 'Total']
+
+        if not filtered.empty:
+            boolean = filtered.values[0]
+            if boolean == maxForThisMonth:
+                popularMonths.add(x)
+
+    popularMonths = np.sort(list(popularMonths))
+    print("Most popular month(s) for "+ selection + ":", end=' ')
+    for m in popularMonths:
+        print(m, end = " ")
     
+    print()
+
+
 
 # LABRADOR RETR
 
