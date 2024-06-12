@@ -16,9 +16,11 @@ def main():
 
     print("ENSF 692 Dogs of Calgary")
 
+    #Making Breed names uppercase, to allow for ease of use and typesafety
     data['Breed'] = data['Breed'].str.upper()
 
     # User input stage
+    # Waiting for user to input a correct breed, raising ValueError until a correct breed entered
     while(True):
         try:
             selection = input("Please enter a dog breed ").strip().upper()
@@ -32,24 +34,32 @@ def main():
 
     # Data anaylsis stage
 
+    #Grouping Data by Year and Breed, also summing total up by year for each breed
     annualizedData = data.groupby(['Year', 'Breed'], as_index=False)['Total'].sum()
 
-    top_breed = set()
+    # Creating a set for top years for a breed, this ensures that a year only is found once, unique
+    top_years_for_breed = set()
+
     for year in annualizedData['Year'].values:
         thisYear = annualizedData[annualizedData['Year'] == year]
         max = np.max(thisYear['Total'])
 
         totalForSelection =  annualizedData.loc[(annualizedData['Breed'] == selection) & (annualizedData['Year'] == year), 'Total'].values[0]
         if(max == totalForSelection):
-            top_breed.add(year)
+            top_years_for_breed.add(year)
     
-    top_breed = np.sort(list(top_breed))
+    #Sorting and coverting set of top years for the breed to a list, for output
+    top_years_for_breed = np.sort(list(top_years_for_breed))
+
     print("The "+ selection + " was found in the top breeds for years:", end=' ')
-    for y in top_breed:
+    
+    for y in top_years_for_breed:
         print(y, end = " ")
 
+    #Grouping orignal data by breed and summing it up, so we have overall totals for all breeds
     registration = data.groupby(['Breed'], as_index= False)['Total'].sum()
 
+    #Printing the total overall regesitrations of the breed 
     print()
     print("There have been", end = " ")
     print(registration.loc[(registration['Breed'] == selection), 'Total'].values[0], end = " ")
@@ -64,9 +74,10 @@ def main():
 
     selectedSubset = multi_index_df.loc[idx[:, selection], :]
 
+    #Calculating proportion of registration for Selected breed over all breeds, per year
     selectedBreedSum = 0
     allBreedsSum = 0
-
+    
     for year in yearData.index:
         selectedBreed = selectedSubset.loc[idx[year, selection], 'Total']
         allBreeds = yearData.loc[year]
@@ -76,19 +87,19 @@ def main():
 
         print(f"The {selection} was {((selectedBreed/allBreeds) * 100):.6f}% of top breeds in {year}.")
 
-
-
+    #Printing the proportion of selction overall for the chosen breed
     print(f"The {selection} was {((selectedBreedSum/allBreedsSum) * 100):.6f}% of top breeds across all years.")
 
+    #Monthly grouped data for selected breed
     monthData = data.loc[data['Breed'] == selection].groupby("Month").count()
 
+    #Max times a month appears for the breed
     max_total = monthData['Total'].max()
 
     # Mapping the monthData Total to the maximum total for the selected breed
     max_indices = monthData[monthData['Total'] == max_total].index.tolist()
 
-
-
+    #Printing most popular months
     print("Most popular month(s) for "+ selection + ":", end=' ')
     for month in max_indices:
         print(month,end = " ")   
