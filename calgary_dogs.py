@@ -36,18 +36,19 @@ def main():
 
     #Grouping Data by Year and Breed, also summing total up by year for each breed
     annualizedData = data.groupby(['Year', 'Breed'], as_index=False)['Total'].sum()
-
+    
     # Creating a set for top years for a breed, this ensures that a year only is found once, unique
     top_years_for_breed = set()
 
-    for year in annualizedData['Year'].values:
-        thisYear = annualizedData[annualizedData['Year'] == year]
-        max = np.max(thisYear['Total'])
+    # Finding the maximum total for each year
+    max_totals_per_year = annualizedData.groupby('Year')['Total'].max()
 
-        totalForSelection =  annualizedData.loc[(annualizedData['Breed'] == selection) & (annualizedData['Year'] == year), 'Total'].values[0]
-        if(max == totalForSelection):
+    for year, max_total in max_totals_per_year.items():
+        totalForSelection = annualizedData.loc[(annualizedData['Breed'] == selection) & (annualizedData['Year'] == year), 'Total']
+        
+        if not totalForSelection.empty and totalForSelection.values[0] == max_total:
             top_years_for_breed.add(year)
-    
+
     #Sorting and coverting set of top years for the breed to a list, for output
     top_years_for_breed = np.sort(list(top_years_for_breed))
 
@@ -78,14 +79,16 @@ def main():
     selectedBreedSum = 0
     allBreedsSum = 0
     
+    #finds and prints the proportion of top breeds for this breed for each year it exists
     for year in yearData.index:
-        selectedBreed = selectedSubset.loc[idx[year, selection], 'Total']
-        allBreeds = yearData.loc[year]
+        if (year, selection) in selectedSubset.index:
+            selectedBreed = selectedSubset.loc[(year, selection), 'Total']
+            allBreeds = yearData.loc[year]
 
-        selectedBreedSum += selectedBreed
-        allBreedsSum += allBreeds
+            selectedBreedSum += selectedBreed
+            allBreedsSum += allBreeds
 
-        print(f"The {selection} was {((selectedBreed/allBreeds) * 100):.6f}% of top breeds in {year}.")
+            print(f"The {selection} was {((selectedBreed/allBreeds) * 100):.6f}% of top breeds in {year}.")
 
     #Printing the proportion of selction overall for the chosen breed
     print(f"The {selection} was {((selectedBreedSum/allBreedsSum) * 100):.6f}% of top breeds across all years.")
