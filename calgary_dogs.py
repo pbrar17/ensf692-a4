@@ -55,21 +55,28 @@ def main():
     print(registration.loc[(registration['Breed'] == selection), 'Total'].values[0], end = " ")
     print(selection + " dogs registered in total.")
 
-    yearData = annualizedData.groupby(['Year'], as_index=  False)['Total'].sum()
+    # Creating a MultiIndex DataFrame
+    multi_index_df = annualizedData.set_index(['Year', 'Breed'])
 
-    selectedSubset = annualizedData[annualizedData['Breed'] == selection]
+    # Slicing the DataFrame using IndexSlice
+    idx = pd.IndexSlice
+    yearData = multi_index_df.loc[:, idx['Total']].groupby('Year').sum()
+
+    selectedSubset = multi_index_df.loc[idx[:, selection], :]
 
     selectedBreedSum = 0
     allBreedsSum = 0
-    for year in yearData["Year"].values:
-        selectedBreed = selectedSubset.loc[(selectedSubset['Breed'] == selection) & (selectedSubset['Year'] == year), 'Total'].values[0]
-        allBreeds = yearData.loc[(yearData['Year'] == year), 'Total'].values[0]
+
+    for year in yearData.index:
+        selectedBreed = selectedSubset.loc[idx[year, selection], 'Total']
+        allBreeds = yearData.loc[year]
 
         selectedBreedSum += selectedBreed
         allBreedsSum += allBreeds
 
-
         print(f"The {selection} was {((selectedBreed/allBreeds) * 100):.6f}% of top breeds in {year}.")
+
+
 
     print(f"The {selection} was {((selectedBreedSum/allBreedsSum) * 100):.6f}% of top breeds across all years.")
 
@@ -77,7 +84,10 @@ def main():
 
     max_total = monthData['Total'].max()
 
+    # Mapping the monthData Total to the maximum total for the selected breed
     max_indices = monthData[monthData['Total'] == max_total].index.tolist()
+
+
 
     print("Most popular month(s) for "+ selection + ":", end=' ')
     for month in max_indices:
