@@ -97,7 +97,7 @@ def main():
     monthData = data.loc[data['Breed'] == selection].groupby("Month").count()
 
     #Max times a month appears for the breed
-    max_total = monthData['Total'].max()
+    max_total = np.max(monthData['Total'])
 
     # Mapping the monthData Total to the maximum total for the selected breed
     max_indices = monthData[monthData['Total'] == max_total].index.tolist()
