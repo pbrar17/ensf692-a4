@@ -31,26 +31,11 @@ def main():
             continue
         break
 
-
     # Data anaylsis stage
 
-    #Grouping Data by Year and Breed, also summing total up by year for each breed
-    annualizedData = data.groupby(['Year', 'Breed'], as_index=False)['Total'].sum()
-    
-    # Creating a set for top years for a breed, this ensures that a year only is found once, unique
-    top_years_for_breed = set()
+    selected_breed_data = data[data['Breed'] == selection]
 
-    # Finding the maximum total for each year
-    max_totals_per_year = annualizedData.groupby('Year')['Total'].max()
-
-    for year, max_total in max_totals_per_year.items():
-        totalForSelection = annualizedData.loc[(annualizedData['Breed'] == selection) & (annualizedData['Year'] == year), 'Total']
-        
-        if not totalForSelection.empty and totalForSelection.values[0] == max_total:
-            top_years_for_breed.add(year)
-
-    #Sorting and coverting set of top years for the breed to a list, for output
-    top_years_for_breed = np.sort(list(top_years_for_breed))
+    top_years_for_breed = selected_breed_data.groupby('Year')['Total'].sum().index.tolist()
 
     print("The "+ selection + " was found in the top breeds for years:", end=' ')
     
@@ -66,6 +51,9 @@ def main():
     print(registration.loc[(registration['Breed'] == selection), 'Total'].values[0], end = " ")
     print(selection + " dogs registered in total.")
 
+    #Grouping Data by Year and Breed, also summing total up by year for each breed
+    annualizedData = data.groupby(['Year', 'Breed'], as_index=False)['Total'].sum()
+
     # Creating a MultiIndex DataFrame
     multi_index_df = annualizedData.set_index(['Year', 'Breed'])
 
@@ -79,16 +67,24 @@ def main():
     selectedBreedSum = 0
     allBreedsSum = 0
     
-    #finds and prints the proportion of top breeds for this breed for each year it exists
+     # Iterating over all of the years
     for year in yearData.index:
+        # Initializing counts for the current year to zero
+        selectedBreed = 0
+        allBreeds = 0
+
         if (year, selection) in selectedSubset.index:
+            # If the selected breed exists for this year, get its count
             selectedBreed = selectedSubset.loc[(year, selection), 'Total']
-            allBreeds = yearData.loc[year]
 
-            selectedBreedSum += selectedBreed
-            allBreedsSum += allBreeds
+        # Get the total count for all breeds for this year
+        allBreeds = yearData.loc[year]
 
-            print(f"The {selection} was {((selectedBreed/allBreeds) * 100):.6f}% of top breeds in {year}.")
+        selectedBreedSum += selectedBreed
+        allBreedsSum += allBreeds
+
+        #Printing the proportion of selction for the year for the chosen breed
+        print(f"The {selection} was {((selectedBreed/allBreeds) * 100):.6f}% of top breeds in {year}.")
 
     #Printing the proportion of selction overall for the chosen breed
     print(f"The {selection} was {((selectedBreedSum/allBreedsSum) * 100):.6f}% of top breeds across all years.")
