@@ -33,12 +33,16 @@ def main():
 
     # Data anaylsis stage
 
+    #Using map to filter for selected breed data only
     selected_breed_data = data[data['Breed'] == selection]
 
+    #Grouping by year and sum total, and then storing the years as a list
     top_years_for_breed = selected_breed_data.groupby('Year')['Total'].sum().index.tolist()
 
+    #Printing the breed
     print("The "+ selection + " was found in the top breeds for years:", end=' ')
     
+    #Printing the top years
     for y in top_years_for_breed:
         print(y, end = " ")
 
